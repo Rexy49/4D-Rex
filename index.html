@@ -15,45 +15,53 @@
       --success-color: #27ae60;
     }
     
+    * {
+      box-sizing: border-box;
+    }
+    
     body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
       background: var(--bg-color);
-      text-align: center;
-      padding: 20px;
       color: var(--text-color);
+      margin: 0;
+      padding: 15px;
+      line-height: 1.5;
     }
     
     .container {
       max-width: 900px;
       margin: 0 auto;
+      padding: 10px;
     }
     
     h1 {
-      font-size: 2.2em;
-      margin-bottom: 20px;
+      font-size: clamp(1.5rem, 5vw, 2.2rem);
+      margin: 0 0 15px 0;
       color: var(--text-color);
       font-weight: 600;
-      letter-spacing: 0.5px;
+      text-align: center;
     }
     
     .grid {
       display: grid;
-      grid-template-columns: repeat(4, 70px);
-      gap: 12px;
+      grid-template-columns: repeat(4, minmax(50px, 70px));
+      gap: 8px;
       justify-content: center;
-      margin-bottom: 30px;
+      margin-bottom: 20px;
     }
     
     input[type="number"] {
-      width: 70px;
-      height: 70px;
-      font-size: 24px;
+      width: 100%;
+      height: clamp(50px, 12vw, 70px);
+      font-size: clamp(18px, 5vw, 24px);
       text-align: center;
       border: 2px solid var(--primary-color);
       border-radius: 8px;
       background: var(--card-bg);
       font-weight: bold;
       transition: all 0.2s;
+      -webkit-appearance: none;
+      margin: 0;
     }
     
     input[type="number"]:focus {
@@ -63,15 +71,16 @@
     }
     
     .buttons {
-      margin: 25px 0;
       display: flex;
+      flex-wrap: wrap;
       justify-content: center;
-      gap: 15px;
+      gap: 10px;
+      margin: 20px 0;
     }
     
     button {
-      font-size: 16px;
-      padding: 12px 25px;
+      font-size: clamp(14px, 4vw, 16px);
+      padding: 10px 15px;
       background-color: var(--primary-color);
       color: white;
       border: none;
@@ -79,7 +88,9 @@
       cursor: pointer;
       transition: all 0.3s;
       font-weight: 600;
-      letter-spacing: 0.5px;
+      flex: 1 1 auto;
+      min-width: 120px;
+      max-width: 200px;
     }
     
     button:hover {
@@ -101,54 +112,46 @@
     .category {
       background: var(--card-bg);
       border-radius: 10px;
-      padding: 20px;
-      margin: 25px auto;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+      padding: 15px;
+      margin: 15px 0;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
     }
     
     .category h3 {
-      margin: 0 0 15px 0;
+      margin: 0 0 10px 0;
       color: var(--text-color);
-      font-size: 1.3em;
+      font-size: clamp(1.1rem, 4vw, 1.3rem);
       border-bottom: 2px solid var(--primary-color);
-      padding-bottom: 8px;
-      display: inline-block;
+      padding-bottom: 5px;
     }
     
     .results {
       display: flex;
       flex-wrap: wrap;
       justify-content: center;
-      gap: 8px;
+      gap: 6px;
     }
     
     .number {
       background: #f8f9fa;
       border: 1px solid var(--border-color);
-      border-radius: 5px;
-      padding: 10px 15px;
+      border-radius: 4px;
+      padding: 8px 12px;
       font-family: 'Courier New', monospace;
       font-weight: bold;
-      font-size: 16px;
-      min-width: 60px;
+      font-size: clamp(14px, 3vw, 16px);
       text-align: center;
       transition: all 0.2s;
-    }
-    
-    .number:hover {
-      background: #e9f7fe;
-      border-color: var(--primary-color);
+      flex: 1 0 calc(25% - 12px);
+      max-width: calc(25% - 6px);
     }
     
     .total-count {
-      font-size: 1.2em;
+      font-size: clamp(1rem, 4vw, 1.2rem);
       color: var(--success-color);
-      margin-bottom: 20px;
+      margin-bottom: 15px;
       font-weight: 600;
-    }
-    
-    .header {
-      margin-bottom: 30px;
+      text-align: center;
     }
     
     /* Input validation styling */
@@ -162,34 +165,70 @@
       25% { transform: translateX(-5px); }
       75% { transform: translateX(5px); }
     }
+    
+    /* Responsive adjustments */
+    @media (max-width: 480px) {
+      .grid {
+        grid-template-columns: repeat(4, minmax(40px, 1fr));
+        gap: 6px;
+      }
+      
+      input[type="number"] {
+        height: 50px;
+        font-size: 18px;
+      }
+      
+      .number {
+        flex: 1 0 calc(33% - 8px);
+        max-width: calc(33% - 6px);
+        padding: 6px 8px;
+        font-size: 14px;
+      }
+      
+      .buttons {
+        gap: 8px;
+      }
+      
+      button {
+        min-width: 100px;
+        padding: 8px 12px;
+      }
+    }
   </style>
 </head>
 <body>
   <div class="container">
-    <div class="header">
-      <h1>Rex 4D Box Chart</h1>
-    </div>
+    <h1>Rex 4D Box Chart</h1>
     
     <div class="grid" id="inputGrid"></div>
     
     <div class="buttons">
-      <button id="generateBtn" onclick="generateCombinations()">Generate Combinations</button>
+      <button id="generateBtn" onclick="generateCombinations()">Generate</button>
       <button onclick="resetGrid()">Reset</button>
-      <button onclick="exportToFile()">Export to File</button>
+      <button onclick="exportToFile()">Export</button>
     </div>
     
     <div id="output"></div>
   </div>
 
   <script>
+    // Store categories globally for export
+    let currentCategories = {
+      '24-way': [],
+      '12-way': [],
+      '6-way': [],
+      '4-way': [],
+      '1-way': []
+    };
+
     // Initialize grid with default values
     function initGrid() {
       const grid = document.getElementById('inputGrid');
       const defaultValues = [
-        ' ', ' ', ' ', ' ',
-        ' ', ' ', ' ', ' ',
-        ' ', ' ', ' ', ' ',
-        ' ', ' ', ' ', ' '
+        '7', '4', '9', '5',
+        '2', '1', '6', '3',
+        '2', '8', '5', '4',
+        '6', '6', '4', '3'
       ];
       
       grid.innerHTML = '';
@@ -315,21 +354,18 @@
 
     // Display results
     function displayResults(combinations) {
-      const categories = categorize(combinations);
+      currentCategories = categorize(combinations);
       const output = document.getElementById('output');
       output.innerHTML = '';
       
       // Show total count
       const totalDiv = document.createElement('div');
-      totalDiv.className = 'category';
-      totalDiv.innerHTML = `
-        <h3>Results</h3>
-        <div class="total-count">Total Unique Combinations: ${combinations.length}</div>
-      `;
+      totalDiv.className = 'total-count';
+      totalDiv.textContent = `Total Unique Combinations: ${combinations.length}`;
       output.appendChild(totalDiv);
       
       // Display each category
-      for (const [category, numbers] of Object.entries(categories)) {
+      for (const [category, numbers] of Object.entries(currentCategories)) {
         if (numbers.length === 0) continue;
         
         const categoryDiv = document.createElement('div');
@@ -362,16 +398,37 @@
     }
 
     function exportToFile() {
-      const numbers = Array.from(document.querySelectorAll('.number')).map(n => n.textContent);
-      if (numbers.length === 0) {
+      if (currentCategories['24-way'].length === 0 && 
+          currentCategories['12-way'].length === 0 && 
+          currentCategories['6-way'].length === 0 && 
+          currentCategories['4-way'].length === 0) {
         alert('No combinations to export. Please generate combinations first.');
         return;
       }
-      const text = numbers.join('\n');
+      
+      let text = 'REX 4D BOX CHART RESULTS\n\n';
+      text += `Generated at: ${new Date().toLocaleString()}\n\n`;
+      
+      // Add each category with proper formatting
+      for (const [category, numbers] of Object.entries(currentCategories)) {
+        if (numbers.length === 0) continue;
+        
+        text += `=== ${category.toUpperCase()} (${numbers.length} numbers) ===\n`;
+        
+        // Format numbers in rows of 4
+        for (let i = 0; i < numbers.length; i += 4) {
+          const row = numbers.slice(i, i + 4);
+          text += row.join('\t') + '\n';
+        }
+        
+        text += '\n';
+      }
+      
+      // Create and download the file
       const blob = new Blob([text], {type: 'text/plain'});
       const link = document.createElement('a');
       link.href = URL.createObjectURL(blob);
-      link.download = 'rex_4d_combinations.txt';
+      link.download = `rex_4d_results_${new Date().toISOString().slice(0,10)}.txt`;
       link.click();
     }
 
