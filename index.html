@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Rex 4x4 4D Box Chart Generator</title>
+  <title>Rex 4D Box Chart</title>
   <style>
     :root {
       --primary-color: #3498db;
@@ -204,7 +204,7 @@
       }
     }
 
-    /* Hidden element for image export */
+    /* Enhanced styles for image export */
     #imageExportContainer {
       position: absolute;
       left: -9999px;
@@ -212,37 +212,88 @@
       padding: 20px;
       background: white;
       box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      font-family: Arial, sans-serif;
     }
 
     #imageExportContainer h2 {
       color: #2c3e50;
       text-align: center;
+      margin-bottom: 10px;
+      font-size: 24px;
+    }
+
+    .export-header {
+      text-align: center;
       margin-bottom: 20px;
     }
 
-    .export-category {
-      margin-bottom: 15px;
+    .export-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 5px;
+      margin: 0 auto 20px;
+      width: fit-content;
     }
 
-    .export-category h3 {
+    .export-grid-cell {
+      padding: 8px;
+      text-align: center;
+      border: 1px solid #ddd;
+      min-width: 40px;
+    }
+
+    .export-section {
+      margin-bottom: 15px;
+      page-break-inside: avoid;
+    }
+
+    .export-section-title {
       color: #2980b9;
       border-bottom: 1px solid #3498db;
-      padding-bottom: 5px;
+      padding-bottom: 3px;
+      margin-bottom: 8px;
+      font-size: 18px;
     }
 
-    .export-numbers {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 5px;
+    .export-numbers-grid {
+      display: grid;
+      grid-template-columns: repeat(8, 1fr);
+      gap: 4px;
     }
 
     .export-number {
       background: #f8f9fa;
       border: 1px solid #dfe6e9;
       border-radius: 3px;
-      padding: 5px 8px;
+      padding: 4px 6px;
       font-family: 'Courier New', monospace;
       font-size: 14px;
+      text-align: center;
+      min-width: 50px;
+    }
+
+    .total-count-export {
+      text-align: center;
+      font-size: 18px;
+      color: #27ae60;
+      font-weight: bold;
+      margin: 15px 0;
+    }
+
+    @media print {
+      body * {
+        visibility: hidden;
+      }
+      #imageExportContainer, #imageExportContainer * {
+        visibility: visible;
+      }
+      #imageExportContainer {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        box-shadow: none;
+      }
     }
   </style>
 </head>
@@ -511,7 +562,7 @@
       link.click();
     }
 
-    // Export results as an image (JPEG/PNG)
+    // Enhanced image export function with better space utilization
     function exportToImage() {
       if (Object.values(currentCategories).every(arr => arr.length === 0)) {
         alert('No combinations to export. Please generate combinations first.');
@@ -521,78 +572,98 @@
       const container = document.getElementById('imageExportContainer');
       container.innerHTML = '';
       
-      // Create image content
+      // Create main content container
       const content = document.createElement('div');
       
-      // Add title
+      // Add header with title and date
+      const header = document.createElement('div');
+      header.className = 'export-header';
+      
       const title = document.createElement('h2');
       title.textContent = 'REX 4D BOX CHART RESULTS';
-      content.appendChild(title);
+      header.appendChild(title);
       
-      // Add generation date
       const date = document.createElement('p');
       date.textContent = `Generated: ${new Date().toLocaleString()}`;
-      date.style.textAlign = 'center';
-      date.style.marginBottom = '20px';
-      content.appendChild(date);
+      header.appendChild(date);
+      
+      content.appendChild(header);
       
       // Add input grid
+      const gridSection = document.createElement('div');
+      gridSection.className = 'export-section';
+      
       const gridTitle = document.createElement('h3');
+      gridTitle.className = 'export-section-title';
       gridTitle.textContent = 'Input Grid:';
-      gridTitle.style.textAlign = 'center';
-      content.appendChild(gridTitle);
+      gridSection.appendChild(gridTitle);
       
       const columns = getColumnValues();
       const gridTable = document.createElement('div');
-      gridTable.style.display = 'flex';
-      gridTable.style.justifyContent = 'center';
-      gridTable.style.marginBottom = '20px';
+      gridTable.className = 'export-grid';
       
+      // Create grid header (column numbers)
       for (let col = 0; col < 4; col++) {
-        const colDiv = document.createElement('div');
-        colDiv.style.margin = '0 10px';
-        for (let row = 0; row < 4; row++) {
-          const cell = document.createElement('div');
-          cell.textContent = columns[col][row];
-          cell.style.textAlign = 'center';
-          cell.style.padding = '5px';
-          cell.style.border = '1px solid #ddd';
-          cell.style.margin = '2px';
-          colDiv.appendChild(cell);
-        }
-        gridTable.appendChild(colDiv);
+        const headerCell = document.createElement('div');
+        headerCell.className = 'export-grid-cell';
+        headerCell.style.fontWeight = 'bold';
+        headerCell.textContent = `Col ${col+1}`;
+        gridTable.appendChild(headerCell);
       }
-      content.appendChild(gridTable);
+      
+      // Add grid values
+      for (let row = 0; row < 4; row++) {
+        for (let col = 0; col < 4; col++) {
+          const cell = document.createElement('div');
+          cell.className = 'export-grid-cell';
+          cell.textContent = columns[col][row];
+          gridTable.appendChild(cell);
+        }
+      }
+      
+      gridSection.appendChild(gridTable);
+      content.appendChild(gridSection);
       
       // Add total count
-      const totalDiv = document.createElement('h3');
+      const totalDiv = document.createElement('div');
+      totalDiv.className = 'total-count-export';
       totalDiv.textContent = `Total Unique Combinations: ${Object.values(currentCategories).reduce((a, b) => a + b.length, 0)}`;
-      totalDiv.style.textAlign = 'center';
-      totalDiv.style.color = '#27ae60';
       content.appendChild(totalDiv);
       
-      // Add categories
+      // Add categories in a more compact format
       for (const [category, numbers] of Object.entries(currentCategories)) {
         if (numbers.length === 0) continue;
         
         const categoryDiv = document.createElement('div');
-        categoryDiv.className = 'export-category';
+        categoryDiv.className = 'export-section';
         
         const title = document.createElement('h3');
+        title.className = 'export-section-title';
         title.textContent = `${category} (${numbers.length})`;
         categoryDiv.appendChild(title);
         
-        const numbersDiv = document.createElement('div');
-        numbersDiv.className = 'export-numbers';
+        const numbersContainer = document.createElement('div');
+        numbersContainer.className = 'export-numbers-grid';
         
         numbers.forEach(num => {
-          const numSpan = document.createElement('span');
+          const numSpan = document.createElement('div');
           numSpan.className = 'export-number';
           numSpan.textContent = num;
-          numbersDiv.appendChild(numSpan);
+          numbersContainer.appendChild(numSpan);
         });
         
-        categoryDiv.appendChild(numbersDiv);
+        // Fill empty spaces to maintain grid layout
+        const emptySlots = 8 - (numbers.length % 8);
+        if (emptySlots !== 8) {
+          for (let i = 0; i < emptySlots; i++) {
+            const emptySpan = document.createElement('div');
+            emptySpan.className = 'export-number';
+            emptySpan.style.visibility = 'hidden';
+            numbersContainer.appendChild(emptySpan);
+          }
+        }
+        
+        categoryDiv.appendChild(numbersContainer);
         content.appendChild(categoryDiv);
       }
       
@@ -602,21 +673,24 @@
       const loadScript = document.createElement('script');
       loadScript.src = 'https://html2canvas.hertzen.com/dist/html2canvas.min.js';
       loadScript.onload = function() {
-        // Give a small delay to ensure rendering is complete
         setTimeout(() => {
           html2canvas(container, {
             scale: 2,
             logging: false,
             useCORS: true,
-            allowTaint: true
+            allowTaint: true,
+            backgroundColor: '#ffffff'
           }).then(canvas => {
             // Create download link
             const link = document.createElement('a');
             link.download = `rex_4d_${new Date().toISOString().slice(0,10)}.png`;
             link.href = canvas.toDataURL('image/png');
             link.click();
+            
+            // Clean up
+            document.head.removeChild(loadScript);
           });
-        }, 100);
+        }, 200);
       };
       document.head.appendChild(loadScript);
     }
