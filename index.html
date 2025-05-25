@@ -298,27 +298,27 @@
   // Initialize grid with default values
 function initGrid() {
   const grid = document.getElementById('inputGrid');
-  const defaultValues = [
-    '', '', '', '',
-    '', '', '', '',
-    '', '', '', '',
-    '', '', '', ''
-  ];
   grid.innerHTML = '';
   for (let i = 0; i < 16; i++) {
     const input = document.createElement('input');
     input.type = 'number';
     input.min = '0';
     input.max = '9';
-    input.value = defaultValues[i];
+    input.value = '0'; // default to 0 for full combinations
     input.id = `cell-${Math.floor(i/4)}-${i%4}`;
     input.oninput = function() {
       if (this.value.length > 1) this.value = this.value.slice(0,1);
       validateInputs();
     };
     input.onblur = function() {
-      if (this.value < 0) this.value=0;
-      if (this.value > 9) this.value=9;
+      if (this.value === '' || isNaN(this.value)) {
+        this.value='0';
+      } else {
+        let val = parseInt(this.value);
+        if (val < 0) val=0;
+        if (val > 9) val=9;
+        this.value=val;
+      }
       validateInputs();
     };
     grid.appendChild(input);
@@ -333,7 +333,7 @@ function validateInputs() {
   let allValid = true;
   inputs.forEach(input => {
     const val = input.value.trim();
-    if (val === '' || isNaN(val) || val < 0 || val > 9) {
+    if (val === '' || isNaN(val) || parseInt(val)<0 || parseInt(val)>9) {
       allValid = false;
     }
   });
@@ -356,6 +356,7 @@ function getColumnValues() {
 
 // Generate all combinations
 function generateCombinations() {
+  console.log('Generating combinations...');
   if (!validateInputs()) {
     alert('Please fill all boxes with numbers between 0-9');
     return;
@@ -363,10 +364,10 @@ function generateCombinations() {
   const columns = getColumnValues();
   const combos = new Set();
 
-  for (let a=0; a<4; a++) {
-    for (let b=0; b<4; b++) {
-      for (let c=0; c<4; c++) {
-        for (let d=0; d<4; d++) {
+  for (let a=0; a<columns[0].length; a++) {
+    for (let b=0; b<columns[1].length; b++) {
+      for (let c=0; c<columns[2].length; c++) {
+        for (let d=0; d<columns[3].length; d++) {
           const combo = columns[0][a] + columns[1][b] + columns[2][c] + columns[3][d];
           combos.add(combo);
         }
@@ -452,6 +453,15 @@ function resetGrid() {
   document.querySelectorAll('#inputGrid input').forEach(i => i.value='');
   document.getElementById('output').innerHTML = '';
   validateInputs();
+  // Optional: reset categories and hide chart
+  currentCategories = {
+    '24-way': [],
+    '12-way': [],
+    '6-way': [],
+    '4-way': [],
+    '1-way': []
+  };
+  document.getElementById('plotlyChart').style.display='none';
 }
 
 // Export to text file
@@ -464,8 +474,12 @@ function exportToFile() {
   text += `Generated: ${new Date().toLocaleString()}\n\n`;
   const columns = getColumnValues();
   text += 'Input Grid:\n';
-  for (let row=0; row<4; row++) {
-    text += `${columns[0][row]}\t${columns[1][row]}\t${columns[2][row]}\t${columns[3][row]}\n`;
+  for (let r=0; r<4; r++) {
+    let rowStr = '';
+    for (let c=0; c<4; c++) {
+      rowStr += columns[c][r] + '\t';
+    }
+    text += rowStr.trim() + '\n';
   }
   text += '\n=== ALL COMBINATIONS (Compact) ===\n';
   const allNumbers = [
@@ -478,15 +492,6 @@ function exportToFile() {
   for (let i=0; i<allNumbers.length; i+=4) {
     const row = allNumbers.slice(i, i+4);
     text += row.join('\t') + '\n';
-  }
-  text += '\n=== BY CATEGORY ===\n';
-  for (const [category, numbers] of Object.entries(currentCategories)) {
-    if (numbers.length===0) continue;
-    text += `\n${category} (${numbers.length}):\n`;
-    for (let i=0; i<numbers.length; i+=8) {
-      const row = numbers.slice(i,i+8);
-      text += row.join('\t') + '\n';
-    }
   }
   const blob = new Blob([text], {type:'text/plain'});
   const link = document.createElement('a');
@@ -578,7 +583,7 @@ function exportToImage() {
       span.textContent=n;
       numGrid.appendChild(span);
     });
-    // Fill remaining spaces to maintain grid
+    // fill remaining
     const rem = 8 - (numbers.length %8);
     if (rem !==8) {
       for (let i=0; i<rem; i++) {
@@ -593,9 +598,10 @@ function exportToImage() {
   }
 
   // Append to hidden container
+  document.getElementById('imageExportContainer').innerHTML='';
   document.getElementById('imageExportContainer').appendChild(content);
 
-  // Load html2canvas and generate image
+  // Load html2canvas for image export
   const script = document.createElement('script');
   script.src='https://html2canvas.hertzen.com/dist/html2canvas.min.js';
   script.onload= ()=> {
@@ -627,11 +633,11 @@ function toggle3D(showResults) {
 
   if (showResults) {
     // Show results
-    chartDiv.style.display = 'none';
-    outputDiv.style.display = 'block';
+    chartDiv.style.display='none';
+    outputDiv.style.display='block';
     document.getElementById('show3DBtn').style.display='inline-block';
     document.getElementById('backBtn').style.display='none';
-    is3DView = false;
+    is3DView=false;
   } else {
     // Generate & show 3D chart
     generate3DChart();
@@ -661,10 +667,7 @@ function generate3DChart() {
   const dataPoints = [];
   allCombos.forEach(combo => {
     const digits = combo.split('');
-    const x = parseInt(digits[0]);
-    const y = parseInt(digits[1]);
-    const z = parseInt(digits[2]);
-    dataPoints.push({x,y,z,text:combo});
+    dataPoints.push({x:parseInt(digits[0]), y:parseInt(digits[1]), z:parseInt(digits[2]), text: combo});
   });
 
   const trace = {
