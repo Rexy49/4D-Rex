@@ -3,282 +3,439 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Rex 4D Box Chart with Search</title>
-<!-- Include Plotly.js for 3D visualization if needed in future -->
-<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+<title>Rex 4D GC</title>
+<!-- Include html2canvas library for export -->
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+<!-- Google Fonts for refined font -->
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet" />
 <style>
   :root {
     --primary-color: #3498db;
     --secondary-color: #2980b9;
     --text-color: #2c3e50;
     --bg-color: #f5f7fa;
-    --card-bg: #ffffff;
-    --border-color: #dfe6e9;
   }
   * {
     box-sizing: border-box;
   }
   body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    font-family: 'Roboto', Arial, sans-serif;
     background: var(--bg-color);
     color: var(--text-color);
     margin: 0;
     padding: 15px;
-    line-height: 1.5;
   }
   .container {
-    max-width: 900px;
+    max-width: 1000px;
     margin: 0 auto;
   }
   h1 {
-    font-size: clamp(1.5rem, 5vw, 2.2rem);
-    margin: 0 0 15px 0;
     text-align: center;
+    font-size: clamp(1.5rem, 6vw, 2.5rem);
+    margin-bottom: 10px;
   }
   .description {
     text-align: center;
-    margin-bottom: 20px;
-    font-size: 0.95rem;
-    color: #7f8c8d;
+    margin-bottom: 15px;
+    font-size: 1rem;
   }
+  /* Responsive grid layout for input grid */
   .grid {
     display: grid;
-    grid-template-columns: repeat(4, minmax(50px, 70px));
+    grid-template-columns: repeat(4, minmax(50px, 1fr));
     gap: 8px;
     justify-content: center;
     margin-bottom: 20px;
   }
   input[type="number"] {
     width: 100%;
-    height: clamp(50px, 12vw, 70px);
-    font-size: clamp(18px, 5vw, 24px);
+    height: clamp(40px, 8vw, 60px);
+    font-size: clamp(1.2rem, 3vw, 2rem);
     text-align: center;
     border: 2px solid var(--primary-color);
     border-radius: 8px;
-    background: var(--card-bg);
-    font-weight: bold;
+    background: #fff;
+    font-weight: 500;
+    outline: none;
   }
   input[type="number"]:focus {
-    outline: none;
     border-color: var(--secondary-color);
     box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
   }
-  .buttons {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-    justify-content: center;
-    margin: 20px 0;
-  }
+  /* Buttons styles for responsiveness */
   button {
-    font-size: clamp(14px, 4vw, 16px);
     padding: 10px 15px;
-    background-color: var(--primary-color);
-    color: white;
+    margin: 5px;
     border: none;
     border-radius: 6px;
+    background-color: var(--primary-color);
+    color: #fff;
+    font-size: 1rem;
     cursor: pointer;
-    transition: all 0.3s;
-    font-weight: 600;
-    min-width: 120px;
+    flex: 1 1 auto;
   }
   button:hover {
     background-color: var(--secondary-color);
-    transform: translateY(-2px);
   }
-  button:disabled {
-    background-color: #95a5a6;
-    cursor: not-allowed;
-    opacity: 0.7;
+  /* Buttons container for stacking on small screens */
+  .buttons-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-top: 10px;
   }
-  /* Search box style */
-  #searchInput {
-    width: 100%;
-    max-width: 300px;
-    padding: 8px;
-    margin: 10px auto;
-    display: block;
+  /* Search filters styles */
+  #searchContainer {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    margin-top: 10px;
+    justify-content: center;
+  }
+  #searchContainer input {
+    padding: 10px 15px;
+    font-size: 1.1rem;
     border: 2px solid var(--primary-color);
-    border-radius: 6px;
+    border-radius: 8px;
+    width: 200px;
+    max-width: 250px;
+    transition: border-color 0.3s, box-shadow 0.3s;
+  }
+  #searchContainer input:focus {
+    border-color: var(--secondary-color);
+    box-shadow: 0 0 8px rgba(52, 152, 219, 0.3);
+  }
+  /* Results styling for responsiveness */
+  #results {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    margin-top: 20px;
+  }
+  .category {
+    background: #e0f7fa;
+    padding: 10px;
+    border-radius: 8px;
+  }
+  .category h2 {
+    margin-top: 0;
+  }
+  .combinations {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 10px;
+  }
+  .number-item {
+    padding: 8px 12px;
+    background: #f8f9fa;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-family: 'Courier New', monospace;
+    font-weight: bold;
     font-size: 1rem;
   }
-  /* Results list styling */
-#resultsContainer {
-  margin-top: 20px;
-}
-#results {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  justify-content: center;
-}
-.number-item {
-  padding: 8px 12px;
-  background: #f8f9fa;
-  border: 1px solid var(--border-color);
-  border-radius: 4px;
-  font-family: 'Courier New', monospace;
-  font-weight: bold;
-  font-size: 1rem;
-}
 </style>
 </head>
 <body>
 <div class="container">
-<h1>Rex 4D Box Chart with Search</h1>
-<div class="description">Enter numbers in the grid below, then generate all combinations. Use the search box below to find combinations containing specific digits.</div>
+<h1>Rex 4D GC</h1>
+<div class="description">
+  Enter numbers in the grid below, then generate all combinations. Use the filters below to refine results.
+</div>
 
 <!-- Input Grid -->
 <div class="grid" id="inputGrid"></div>
 
 <!-- Buttons -->
-<div class="buttons">
-  <button id="generateBtn" onclick="generateCombinations()">Generate</button>
+<div class="buttons-container">
+  <button id="generateBtn" onclick="generateAndCategorize()">Generate</button>
   <button onclick="resetGrid()">Reset</button>
+  <button onclick="exportToText()">Export to Text</button>
+  <button onclick="exportToJPEG()">Export to JPEG</button>
 </div>
 
-<!-- Search box for 3D search -->
-<input type="text" id="searchInput" placeholder="Search combinations containing digits..." oninput="searchCombinations()" />
-
-<!-- Results container -->
-<div id="resultsContainer">
-  <h2>Total Combinations: <span id="totalCount">0</span></h2>
-  <div id="results"></div>
+<!-- Search Filters -->
+<div id="searchContainer">
+  <input type="number" id="sumSearch" placeholder="Sum 0-36" min="0" max="36" oninput="applyFilters()" />
+  <input type="text" id="digitSearch" placeholder="Contains digits (e.g., 23)" oninput="applyFilters()" />
 </div>
+
+<!-- Results Display -->
+<div id="results"></div>
 </div>
 
 <script>
-  let allCombinations = []; // store all 256 combinations
-  let filteredCombinations = []; // store filtered results based on search
+  let allCombinations = [];
+  let filteredCombinations = [];
 
-// Initialize grid inputs
-function initGrid() {
-  const grid = document.getElementById('inputGrid');
-  grid.innerHTML = '';
-  for (let i=0; i<16; i++) {
-    const input = document.createElement('input');
-    input.type='number';
-    input.min='0'; input.max='9';
-    input.value='0';
-    input.id=`cell-${Math.floor(i/4)}-${i%4}`;
-    input.oninput=function() {
-      if (this.value.length>1) this.value=this.value.slice(0,1);
-      validateInputs();
-    }
-    input.onblur=function() {
-      if (this.value==='' || isNaN(this.value)) this.value='0';
-      else {
-        let val=parseInt(this.value);
-        if (val<0) val=0;
-        if (val>9) val=9;
-        this.value=val;
+  function initGrid() {
+    const grid = document.getElementById('inputGrid');
+    grid.innerHTML = '';
+    for (let i=0; i<16; i++) {
+      const input=document.createElement('input');
+      input.type='number'; input.min='0'; input.max='9'; input.value='0';
+      input.id=`cell-${Math.floor(i/4)}-${i%4}`;
+      input.oninput=function() {
+        if (this.value.length>1) this.value=this.value.slice(0,1);
+        validateInputs();
       }
-      validateInputs();
+      input.onblur=function() {
+        if (this.value==='' || isNaN(this.value)) this.value='0';
+        else {
+          let v=parseInt(this.value);
+          v=Math.max(0, Math.min(9,v));
+          this.value=v;
+        }
+        validateInputs();
+      }
+      grid.appendChild(input);
     }
-    grid.appendChild(input);
+    validateInputs();
   }
-  validateInputs();
-}
 
-// Validate inputs
-function validateInputs() {
-  const inputs=document.querySelectorAll('#inputGrid input');
-  const generateBtn=document.getElementById('generateBtn');
-  let allValid=true;
-  inputs.forEach(input=>{
-    const val=input.value.trim();
-    if (val==='' || isNaN(val) || parseInt(val)<0 || parseInt(val)>9) allValid=false;
-  });
-  generateBtn.disabled=!allValid;
-  return allValid;
-}
-
-// Get current columns values
-function getColumnValues() {
-  const inputs=document.querySelectorAll('#inputGrid input');
-  const columns=[[],[],[],[]];
-  for (let i=0; i<16; i++) {
-    const colIdx=i%4;
-    let val=parseInt(inputs[i].value);
-    val=Math.max(0, Math.min(9, val));
-    columns[colIdx].push(val.toString());
+  function validateInputs() {
+    const inputs=document.querySelectorAll('#inputGrid input');
+    const generateBtn=document.getElementById('generateBtn');
+    let valid=true;
+    inputs.forEach(i=>{
+      const v=i.value.trim();
+      if (v==='' || isNaN(v) || parseInt(v)<0 || parseInt(v)>9) valid=false;
+    });
+    generateBtn.disabled=!valid;
+    return valid;
   }
-  return columns;
-}
 
-// Generate all combinations
-function generateCombinations() {
-  if (!validateInputs()) {
-    alert('Please fill all boxes with numbers between 0-9');
-    return;
+  function getColumns() {
+    const inputs=document.querySelectorAll('#inputGrid input');
+    const columns=[[],[],[],[]];
+    for (let i=0; i<16; i++) {
+      const colIdx=i%4;
+      let v=parseInt(inputs[i].value);
+      v=Math.max(0, Math.min(9,v));
+      columns[colIdx].push(v.toString());
+    }
+    return columns;
   }
-  const columns=getColumnValues();
-  const combos=new Set();
 
-  for (let a=0; a<columns[0].length; a++) {
-    for (let b=0; b<columns[1].length; b++) {
-      for (let c=0; c<columns[2].length; c++) {
-        for (let d=0; d<columns[3].length; d++) {
-          const combo=columns[0][a]+columns[1][b]+columns[2][c]+columns[3][d];
-          combos.add(combo);
+  function generateAndCategorize() {
+    if (!validateInputs()) {
+      alert('Please fill all boxes with 0-9.');
+      return;
+    }
+    const columns=getColumns();
+    const combos=new Set();
+    for (let a=0; a<columns[0].length; a++) {
+      for (let b=0; b<columns[1].length; b++) {
+        for (let c=0; c<columns[2].length; c++) {
+          for (let d=0; d<columns[3].length; d++) {
+            combos.add(columns[0][a]+columns[1][b]+columns[2][c]+columns[3][d]);
+          }
         }
       }
     }
+    allCombinations=Array.from(combos).sort();
+    filteredCombinations=allCombinations.slice();
+    applyFilters();
   }
-  allCombinations=Array.from(combos).sort();
-  filteredCombinations=allCombinations;
-  displayResults(filteredCombinations);
-  document.getElementById('totalCount').textContent=allCombinations.length;
-}
 
-// Display results
-function displayResults(combos) {
-  const resultsDiv=document.getElementById('results');
-  resultsDiv.innerHTML='';
-  combos.forEach(c=>{
-    const div=document.createElement('div');
-    div.className='number-item';
-    div.textContent=c;
-    resultsDiv.appendChild(div);
-  });
-}
+  function resetGrid() {
+    document.querySelectorAll('#inputGrid input').forEach(i=>i.value='0');
+    document.getElementById('results').innerHTML='';
+    allCombinations=[];
+    filteredCombinations=[];
+    document.getElementById('sumSearch').value='';
+    document.getElementById('digitSearch').value='';
+  }
 
-// Reset grid
-function resetGrid() {
-  document.querySelectorAll('#inputGrid input').forEach(i=>i.value='0');
-  document.getElementById('results').innerHTML='';
-  document.getElementById('totalCount').textContent='0';
-  allCombinations=[];
-  filteredCombinations=[];
-  document.getElementById('searchInput').value='';
-}
+  function applyFilters() {
+    const sumFilter=document.getElementById('sumSearch').value.trim();
+    const digitFilter=document.getElementById('digitSearch').value.trim();
 
-// Search function
-function searchCombinations() {
-  const query=document.getElementById('searchInput').value.trim();
-  if (query==='') {
-    // show all
-    filteredCombinations=allCombinations;
-  } else {
-    // filter combinations containing all digits in query
-    const queryDigits=new Set(query.split(''));
-    filteredCombinations=allCombinations.filter(c=>{
-      const cDigits=new Set(c.split(''));
-      // check if cDigits contains all queryDigits
-      for (let d of queryDigits) {
-        if (!cDigits.has(d)) return false;
+    filteredCombinations=allCombinations.filter(c => {
+      if (sumFilter !== '') {
+        const sum= c.split('').reduce((acc,d)=>acc+parseInt(d),0);
+        if (sum!==parseInt(sumFilter)) return false;
+      }
+      if (digitFilter !== '') {
+        for (let ch of digitFilter) {
+          if (!c.includes(ch)) return false;
+        }
       }
       return true;
     });
+    displayResults();
   }
-  document.getElementById('totalCount').textContent=filteredCombinations.length;
-  displayResults(filteredCombinations);
-}
 
-// Initialize grid on load
-window.onload=function() {
-  initGrid();
-}
+  function displayResults() {
+    const container=document.getElementById('results');
+    container.innerHTML='';
+
+    const categories = {
+      '24-WAY (All Distinct)': [],
+      '12-WAY (One Pair)': [],
+      '6-WAY (Two Pairs)': [],
+      '4-WAY (Triple + Single)': [],
+    };
+
+    for (let c of filteredCombinations) {
+      const freq={};
+      for (let d of c) { freq[d]= (freq[d]||0)+1; }
+      const counts= Object.values(freq).sort((a,b)=>b-a);
+      if (counts.length===1 && counts[0]===4) {
+        categories['1-WAY (All Same)']=categories['1-WAY (All Same)'] || [];
+        categories['1-WAY (All Same)'].push(c);
+      } else if (counts.length===4 && counts.every(c=>c===1)) {
+        categories['24-WAY (All Distinct)'].push(c);
+      } else if (counts.length===3 && counts.includes(2)) {
+        categories['12-WAY (One Pair)'].push(c);
+      } else if (counts.length===2) {
+        if (counts.includes(2) && counts.includes(2)) {
+          categories['6-WAY (Two Pairs)'].push(c);
+        } else if (counts.includes(3)) {
+          categories['4-WAY (Triple + Single)'].push(c);
+        }
+      }
+    }
+
+    const order = [
+      ['24-WAY (All Distinct)', '12-WAY (One Pair)', '6-WAY (Two Pairs)', '4-WAY (Triple + Single)'],
+      ['1-WAY (All Same)']
+    ];
+
+    for (let group of order) {
+      for (let title of group) {
+        const combos=categories[title] || [];
+        const categoryDiv=document.createElement('div');
+        categoryDiv.className='category';
+        const titleH2=document.createElement('h2');
+        titleH2.innerText=`${title} (${combos.length})`;
+        categoryDiv.appendChild(titleH2);
+        const comboDiv=document.createElement('div');
+        comboDiv.className='combinations';
+        combos.forEach(c => {
+          const itemDiv=document.createElement('div');
+          itemDiv.className='number-item';
+          itemDiv.innerText=c;
+          comboDiv.appendChild(itemDiv);
+        });
+        categoryDiv.appendChild(comboDiv);
+        container.appendChild(categoryDiv);
+      }
+    }
+  }
+
+  function getGridData() {
+    const inputs = document.querySelectorAll('#inputGrid input');
+    const gridData = [];
+    for (let i=0; i<16; i++) {
+      let v = inputs[i].value.trim();
+      if (v==='') v='0';
+      gridData.push(v);
+    }
+    return gridData;
+  }
+
+  function createReport() {
+    const gridData = getGridData();
+    const now = new Date();
+    const dateStr = now.toLocaleString();
+
+    let report = `Rex 4D GC Results\n`;
+    report += `Date & Time: ${dateStr}\n\n`;
+    report += `Input Grid:\n`;
+    for (let row=0; row<4; row++) {
+      report += gridData.slice(row*4, row*4+4).join(' ') + '\n';
+    }
+    report += `\nFiltered Combinations (${filteredCombinations.length}):\n`;
+    report += filteredCombinations.join('\n');
+    return report;
+  }
+
+  function exportToText() {
+    const report = createReport();
+    const blob = new Blob([report], {type: 'text/plain'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'results.txt';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
+  function exportToJPEG() {
+    const resultsDiv = document.getElementById('results');
+
+    // Gather the current grid data
+    const gridData = getGridData();
+
+    // Get current date and time
+    const now = new Date();
+    const dateStr = now.toLocaleString();
+
+    // Create a container div for the export content
+    const exportContainer = document.createElement('div');
+    exportContainer.style.position='fixed';
+    exportContainer.style.top='-9999px'; // hide off-screen
+    exportContainer.style.left='-9999px';
+    exportContainer.style.width='1000px'; // fixed width for consistency
+    exportContainer.style.background='white'; // ensure background for clarity
+    exportContainer.style.padding='20px';
+    exportContainer.style.fontFamily='Roboto, Arial, sans-serif';
+
+    // Add header info
+    const headerHTML = `
+      <div style="font-weight:600; font-size:1.5rem; margin-bottom:10px;">Rex 4D GC Results</div>
+      <div style="font-size:1rem; margin-bottom:10px;">Date & Time: ${dateStr}</div>
+      <div style="margin-bottom:10px; font-family:'Courier New', monospace;">
+        Input Grid:
+        <div style="margin-left:10px;">
+          ${gridData.slice(0,4).join(' ')}<br/>
+          ${gridData.slice(4,8).join(' ')}<br/>
+          ${gridData.slice(8,12).join(' ')}<br/>
+          ${gridData.slice(12,16).join(' ')}
+        </div>
+      </div>
+      <div style="margin-top:10px;">Filtered Combinations (${filteredCombinations.length}):</div>
+    `;
+    const headerDiv = document.createElement('div');
+    headerDiv.innerHTML=headerHTML;
+    exportContainer.appendChild(headerDiv);
+
+    // Clone the results content into the container
+    const cloneResults = resultsDiv.cloneNode(true);
+    exportContainer.appendChild(cloneResults);
+
+    // Append the container to the body temporarily
+    document.body.appendChild(exportContainer);
+
+    // Use html2canvas to render
+    html2canvas(exportContainer, {
+      scale: 2 // higher scale for better quality
+    }).then(canvas => {
+      // Remove the temporary container from DOM
+      document.body.removeChild(exportContainer);
+
+      // Save as JPEG
+      canvas.toBlob(function(blob) {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'results.jpg';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      }, 'image/jpeg', 0.95);
+    }).catch(err => {
+      alert('Error generating image: ' + err);
+    });
+  }
+
+  window.onload=()=>{initGrid();};
 </script>
 </body>
 </html>
